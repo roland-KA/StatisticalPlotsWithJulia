@@ -1,4 +1,4 @@
-# StatisticalPlotsWithJulia
+# Statistical Plots with Julia
 
 I'm teaching a course on data science at [Baden-Württemberg Cooperative State University  Karlsruhe](https://www.karlsruhe.dhbw.de/en/general/about-us.html). Among other things, the course covers the topic 'data visualization', where I use the concept of the *grammar of graphics* (see: Leland Wilkinson, *The Grammar of Graphics*, Springer-Verlag 1999) as a theoretical foundation. 
 
