@@ -7,3 +7,6 @@ The Julia graphics packages `Gadfly.jl` and `VegaLite.jl` are presented as two d
 The notebook `DV-Basics-Gadfly.jl` serves as the reference model and contains more detailed explanations. In the notebook `DV-Basics-VegaLite.jl` the diagrams from the Gadfly notebook have been reproduced using VegaLite (as close as possible).
 
 Suggestions on how to improve the examples, especially when it comes to use the full potential of the respective graphics packages, are highly welcome!
+
+Updates:
+- A notebook with plots using `Plots.jl` and `StatsPlots.jl` has been added (`DV-Basics-Plots.jl`). Unfortunately not all examples could be reproduced.
