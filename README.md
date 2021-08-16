@@ -10,3 +10,4 @@ Suggestions on how to improve the examples, especially when it comes to use the 
 
 Updates:
 - A notebook with plots using `Plots.jl` and `StatsPlots.jl` has been added (`DV-Basics-Plots.jl`). Unfortunately not all examples could be reproduced.
+- A notebook with plots using `Makie.jl` and `AlgebraOfGraphics.jl` has been added (`DV-Basics-AlgebraOfGraphics.jl`). But there are still some unresolved issues.
