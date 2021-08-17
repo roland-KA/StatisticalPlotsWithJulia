@@ -163,16 +163,14 @@ end
 
 # ╔═╡ 03adbd74-d40e-4dc3-bbf4-9d573ec92a88
 begin
-	# subregion_labels = sort(collect(subregions_cum.Subregion))
+	subregion_labels = collect(subregions_cum.Subregion)
 	subregions_cum_s = sort(subregions_cum, [:Pop2019])
 	popBySubRegion2 = data(subregions_cum_s) * 
-		mapping(
-			:Subregion, 
-			:Pop2019) * 
+		mapping(:Subregion => sorter(subregion_labels...), :Pop2019) *
 		mapping(color = :Region) * 
 		visual(BarPlot, direction = :x, x_gap = 0.5, width = 0.8)
 	
-	ylabels = sort(collect(subregions_cum.Subregion))
+	ylabels = collect(subregions_cum.Subregion)
 	yticks = 1:length(subregions_cum.Subregion)
 	xticks = 0:500:2000
 	xlabels = string.(collect(xticks))
@@ -193,10 +191,12 @@ end
 # ╔═╡ cf1cc295-d734-42ce-bbb4-777885eae247
 md"""
 ### Unresolved Issues:
-- In comparison to Gadfly and VegaLite more parameters have to be set (and computed) manually. In detail, the labels of the x- and y-axis don't get reasonable values by default; especially the labels on the y-axis have to be sorted manually.
+- In comparison to Gadfly and VegaLite more parameters have to be set (and computed) manually. In detail, the labels of the x- and y-axis don't get reasonable values by default; especially the labels on the y-axis have to be sorted explicitly.
 - The creation of a bar plot which shows the subregions sorted according to their population size, didn't succeed at all:
-  - The package ignores the order of the DataFrame given to `data`. So no matter, if the argument to `data` is `subregions_cum` or `subregions_cum_s`, the result is an unordered bar plot.
-- An attempt to use `mapping(:Subregion => sorter(subregion_labels))` resulted in an error.
+  - The package ignores the order of the DataFrame given to `data`. So no matter, if the argument to `data` is `subregions_cum` or `subregions_cum_s`, the result is bar plot where the subregions are ordered alphabetically according to their subregion name.
+  - An attempt to use `sorter`
+    - in the form `:Subregion => sorter(subregion_labels))` resulted in an error as `sorter` doesn't expect an Array as it's argument; it would be helpful, if the documentation would show some examples on how this function works.
+    - in the form `:Subregion => sorter(subregion_labels...))` works, but has the effect that the subregions are sorted according to `:Region` and within the region alphabetically (not as intended according to population size).
 """
 
 # ╔═╡ d84ac500-cdbc-4b69-b7b5-7f08451b68d3
