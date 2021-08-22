@@ -4,349 +4,65 @@
 using Markdown
 using InteractiveUtils
 
-# ╔═╡ dc723b50-90bb-11eb-17ca-a33654b9cbdb
+# ╔═╡ 45984b50-034f-11ec-19bf-77e944c04bf8
 let
 	using AlgebraOfGraphics
 	using GLMakie
 	using DataFrames
 	using PlutoUI
 	using CSV
-	using Downloads
+	using HTTP
 end
 
-# ╔═╡ 8ad6d918-3e2a-4af9-9852-bf0ad02dc196
-html"""
-<div style="
-position: absolute;
-width: calc(100% - 30px);
-border: 50vw solid SteelBlue;
-border-top: 500px solid SteelBlue;
-border-bottom: none;
-box-sizing: content-box;
-left: calc(-50vw + 15px);
-top: -500px;
-height: 300px;
-pointer-events: none;
-"></div>
-
-<div style="
-height: 300px;
-width: 100%;
-background: SteelBlue;
-color: #88BBD6;
-padding-top: 68px;
-padding-left: 5px;
-">
-
-<span style="
-font-family: Vollkorn, serif;
-font-weight: 700;
-font-feature-settings: 'lnum', 'pnum';
-"> 
-
-<p style="
-font-family: Alegreya sans;
-font-size: 1.4rem;
-font-weight: 300;
-opacity: 1.0;
-color: #CDCDCD;
-">Data Visualization</p>
-<p style="text-align: left; font-size: 2.8rem;">
-Basic diagrams with AlgebraOfGraphics
-</p>
-
-<p style="
-font-family: 'Alegreya Sans'; 
-font-size: 0.7rem; 
-font-weight: 300;
-color: #CDCDCD;">
-&copy  Dr. Roland Schätzle
-</p>
-"""
-
-# ╔═╡ 74dabd2f-bc78-4b32-a385-4e680b90afc9
-PlutoUI.TableOfContents(title = "AlgebraOfGraphics")
-
-# ╔═╡ 0c7f8ff0-90bc-11eb-12ce-37d5a61236d5
+# ╔═╡ eee3e23c-9895-4004-99b0-daefc19d4e4f
 md"""
-# Data: Countries, Population and GDP
-
-Load and prepare basic data for use in the following diagrams. For more information see the Pluto notebook "Basic diagrams with Gadfly".
+# Test `datalimits` with Box Plots and Violin Plots
 """
 
-# ╔═╡ 439fce50-90bc-11eb-022f-61ca67b132b4
+# ╔═╡ 8afc9a0d-eb9a-487b-9907-08ebe3e5f422
+md"""
+## Get and preprocess the data
+"""
+
+# ╔═╡ a6fae924-d77d-47c7-9578-aae2edbdab5f
 begin
-	Downloads.download("https://raw.githubusercontent.com/roland-KA/StatisticalPlotsWithJulia/main/data/countries.csv", "countries.csv")
-	countries = CSV.read("countries.csv", DataFrame)
+	countries = CSV.File(HTTP.get("https://raw.githubusercontent.com/roland-KA/StatisticalPlotsWithJulia/main/data/countries.csv").body) |> DataFrame
 	dropmissing!(countries)
 	countries.GDPperCapita = countries.GDP ./ countries.Pop2019
-	
-	# group and aggregate regions
-	regions = groupby(select(
-			select(countries, Not(:Country)), Not(:Subregion)), :Region)
-	regions_cum = combine(regions, 
-		:Pop2018 => sum, :Pop2019 => sum, :PopChangeAbs => sum, :GDP => sum,
-		renamecols = false)
-	
-	# group and aggregate subregions
-	subregions = groupby(select(countries, Not(:Country)), :Subregion)
-	subregions_cum = combine(subregions, :Region => first, 
-		:Pop2018 => sum, :Pop2019 => sum, :PopChangeAbs => sum, :GDP => sum,
-		renamecols = false)
+	countries
 end
 
-# ╔═╡ 937c7751-6b96-494c-bfb7-9997ea080377
-countries
-
-# ╔═╡ 2c02dac0-4a24-4cee-9f82-ed63f3884145
-describe(countries)
-
-# ╔═╡ 7bf9ec40-90bc-11eb-2783-a763cf94a06a
+# ╔═╡ c58d4252-c49c-4e59-a0cd-669e7ac43f12
 md"""
-# Bar Plots
+## Box Plot
 """
 
-# ╔═╡ 82425a12-90bc-11eb-0a88-d7ecf6e05084
-md"""
-## Population by Region
-"""
-
-# ╔═╡ 9b75284e-90bc-11eb-35e7-5fb28d100b7a
-md"""
-A bar plot to compare the population of the different regions in 2019.
-
-First, a simple version using default values for several aspects of the diagram.
-"""
-
-# ╔═╡ e1fe6450-9187-11eb-0c24-11dfb2161da8
-regionPop2xy = mapping(:Region, :Pop2019)
-
-# ╔═╡ 08ef4390-9188-11eb-0a61-71641713eaf4
-region2color = mapping(color = :Region)
-
-# ╔═╡ 2647035e-9188-11eb-31b5-cfd3716ff2bd
-barplot = visual(BarPlot)
-
-# ╔═╡ 30f42ae0-9188-11eb-1ec4-2ff32ea30765
-data(regions_cum) * regionPop2xy * barplot |> draw
-
-# ╔═╡ 6806b1aa-6ee1-4514-b85f-c04da98afafe
-data(regions_cum) * regionPop2xy * region2color * barplot |> draw
-
-# ╔═╡ 491d23d0-e80e-492c-94bc-1739a5175d09
-begin
-	popByRegion = data(regions_cum) * regionPop2xy * region2color * barplot
-	draw(popByRegion; 
-		axis = (
-			xlabel = "Region", 
-			ylabel = "Population [millions]",
-			title = "Population by Region 2019",
-			backgroundcolor = :ghostwhite
-		),
-		figure = (resolution = (1200, 800), backgroundcolor = :ghostwhite, )
-	)
-end
-
-# ╔═╡ f632aff4-5892-41b9-a30b-e66a68718be7
-md"""
-## Population by Subregion
-"""
-
-# ╔═╡ d386a3ff-64d6-495c-a951-94644b45ad60
-begin
-	popBySubRegion1 = data(subregions_cum) * 
-		mapping(:Subregion, :Pop2019) * 
-		mapping(color = :Region) * 
-		visual(BarPlot, width = 0.8)
-	draw(popBySubRegion1)
-end
-
-# ╔═╡ 03adbd74-d40e-4dc3-bbf4-9d573ec92a88
-begin
-	subregion_labels = collect(subregions_cum.Subregion)
-	subregions_cum_s = sort(subregions_cum, [:Pop2019])
-	popBySubRegion2 = data(subregions_cum_s) * 
-		mapping(:Subregion => sorter(subregion_labels...), :Pop2019) *
-		mapping(color = :Region) * 
-		visual(BarPlot, direction = :x, x_gap = 0.5, width = 0.8)
-	
-	ylabels = collect(subregions_cum.Subregion)
-	yticks = 1:length(subregions_cum.Subregion)
-	xticks = 0:500:2000
-	xlabels = string.(collect(xticks))
-	
-	draw(popBySubRegion2;
-		axis = (
-			yticks = (yticks, ylabels),
-			xticks = (xticks, xlabels),
-			xlabel = "Population [millions]", 
-			ylabel = "Region",
-			title = "Population by Region 2019",
-			backgroundcolor = :ghostwhite
-		),
-		figure = (resolution = (1200, 800), backgroundcolor = :ghostwhite, )
-	)
-end
-
-# ╔═╡ cf1cc295-d734-42ce-bbb4-777885eae247
-md"""
-### Unresolved Issues:
-- In comparison to Gadfly and VegaLite more parameters have to be set (and computed) manually. In detail, the labels of the x- and y-axis don't get reasonable values by default; especially the labels on the y-axis have to be sorted explicitly.
-- The creation of a bar plot which shows the subregions sorted according to their population size, didn't succeed at all:
-  - The package ignores the order of the DataFrame given to `data`. So no matter, if the argument to `data` is `subregions_cum` or `subregions_cum_s`, the result is bar plot where the subregions are ordered alphabetically according to their subregion name.
-  - An attempt to use `sorter`
-    - in the form `:Subregion => sorter(subregion_labels))` resulted in an error as `sorter` doesn't expect an Array as it's argument; it would be helpful, if the documentation would show some examples on how this function works.
-    - in the form `:Subregion => sorter(subregion_labels...))` works, but has the effect that the subregions are sorted according to `:Region` and within the region alphabetically (not as intended according to population size).
-"""
-
-# ╔═╡ d84ac500-cdbc-4b69-b7b5-7f08451b68d3
-md"""
-# Scatter Plots
-"""
-
-# ╔═╡ eecf3ccb-db0a-4a84-b268-d777d938d618
-md"""
-In the next step we have a look at the population at country level in relation to the growth rate. For this purpose a scatter plot is good way to show this relation. 
-"""
-
-# ╔═╡ 4570b49f-9877-4a5c-98a2-f84d186e450f
-data(countries) * 
-	mapping(:Pop2019, :PopChangePct) *
-	mapping(color = :Region) |> draw
-
-# ╔═╡ 9923c808-abc6-4ace-a99e-05c64df6c314
-md"""
-The distribution of the data is quite skewed. So a logarithmic scale on the x-axis might give a better insight of the data. And again, we add some labels.
-"""
-
-# ╔═╡ aacb6f55-3fa2-4085-853e-43694fcc763d
-begin
-	popChangeVsPop = 
-		data(countries) * 
-		mapping(:Pop2019, :PopChangePct) *
-		mapping(color = :Region) 
-	
-	draw(popChangeVsPop;
-		axis = (
-			xscale = log10,
-			xlabel = "Population [millions]", 
-			xtickformat = "{:.2f}",
-			ylabel = "Growth Rate [%]",
-			title = "Population vs Growth Rate, 2019",
-			backgroundcolor = :ghostwhite
-		),
-		figure = (resolution = (1200, 800), backgroundcolor = :ghostwhite, )
-	)
-end
-
-# ╔═╡ a10aeb9c-d109-408b-8193-1e39c25e8292
-md"""
-# Histograms
-"""
-
-# ╔═╡ c1a64b79-6677-458c-a4d0-28a2319668b9
-data(countries) * 
-	mapping(:GDPperCapita) * 
-	histogram() |> draw
-
-# ╔═╡ 115e19ca-04d7-4ae8-902f-69b7a272c321
-begin
-	histGDPperCapita = 
-		data(countries) * 
-		mapping(:GDPperCapita) * 
-		histogram(; bins = 20, normalization = :none) *
-		visual(color = :SteelBlue)
-	
-	draw(histGDPperCapita;
-		axis = (
-			xlabel = "GDP per Capita [USD]", 
-			xtickformat = "{:.0f}",
-			ylabel = "Number of countries",
-			title = "Distribution of GDP per Capita, 2019",
-			backgroundcolor = :ghostwhite
-		),
-		figure = (
-			resolution = (1200, 800), 
-			backgroundcolor = :ghostwhite, 
-		)
-	)
-end
-
-# ╔═╡ 7dcff6f4-d1e1-4ead-8c18-6a943a2516a6
-md"""
-By changing the value of `normalization` to `:pdf` a histogram can be obtained which follows the above mentioned definition. For other possible values of `normalization` see the [documentation](http://juliaplots.org/AlgebraOfGraphics.jl/stable/generated/datatransformations/).
-"""
-
-# ╔═╡ 45ea1037-a5f8-4fac-acab-316c5c798df0
-md"""
-# Box Plots and Violin Plots
-"""
-
-# ╔═╡ 9a7f4887-3c11-4180-9a2c-a79e3b06d610
-md"""
-## Box Plot: GDP per Capita by Region
-"""
-
-# ╔═╡ 979035af-cacf-4278-b3c1-19468f6368b0
-md"""
-In the next step we have a look at the distribution of GDP per Capita among the different regions.
-"""
-
-# ╔═╡ 601bf140-8156-456a-b4cb-95fc6c9524d4
+# ╔═╡ e8d24f81-61cf-47aa-b13a-4adcc9d04ee3
 begin
 	boxGDPperCapita = 
 		data(countries) * 
 		visual(BoxPlot, show_notch = true, datalimits = (-Inf, 100000)) *
 		mapping(:Region, :GDPperCapita, color = :Region) 
-	
-	draw(boxGDPperCapita;
-		axis = (
-			xlabel = "Region",
-			ylabel = "GDP per Capita [USD]", 
-			ytickformat = "{:.0f}",
-			title = "GDP per Capita by Region, 2019",
-			backgroundcolor = :ghostwhite
-		),
-		figure = (
-			resolution = (1200, 800), 
-			backgroundcolor = :ghostwhite, 
-		)
-	)
-	
+	draw(boxGDPperCapita)
 end
 
-# ╔═╡ 82563106-5371-4612-88f1-ed2bf290a58e
+# ╔═╡ dee5e031-2ca2-4f24-b0a4-0fa7e95d13e9
 md"""
-## Violin Plot: GDP per Capita by Region
+**Note:** `datalimits` has no effect on this plot.
 """
 
-# ╔═╡ d4960255-962b-47cb-bcba-84d88a450277
+# ╔═╡ 0d1598bd-9e3a-4726-af28-84b300b2480b
 begin
 	violinGDPperCapita = 
 		data(countries) * 
 		visual(Violin, show_notch = true, datalimits = (-Inf, 100000)) *
 		mapping(:Region, :GDPperCapita, color = :Region) 
-	
-	draw(violinGDPperCapita;
-		axis = (
-			xlabel = "Region",
-			ylabel = "GDP per Capita [USD]", 
-			ytickformat = "{:.0f}",
-			title = "GDP per Capita by Region, 2019",
-			backgroundcolor = :ghostwhite,
-		),
-		figure = (
-			resolution = (1200, 800), 
-			backgroundcolor = :ghostwhite, 
-		)
-	)
-	
+	draw(violinGDPperCapita)
 end
 
-# ╔═╡ ce2efff8-6a62-4678-9e3c-68e678f2bb5b
+# ╔═╡ 0319281a-7f3a-484e-89ae-0a1e082fdfca
 md"""
-### Unresolved Issues:
-- The data on the y-axis can't be limited to max. 100.000 on the box plot. Using `datalimits` in `visual` does the job on the violin plot, but (surprisingly) not on the box plot.
+**Note:** `datalimits` works as intended on the violin plot.
 """
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
@@ -355,15 +71,16 @@ PLUTO_PROJECT_TOML_CONTENTS = """
 AlgebraOfGraphics = "cbdf2221-f076-402e-a563-3d30da359d67"
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
 DataFrames = "a93c6f00-e57d-5684-b7b6-d8193f3e46c0"
-Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
 GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 PlutoUI = "7f904dfe-b85e-4ff6-b463-dae2292396a8"
 
 [compat]
-AlgebraOfGraphics = "~0.5.0"
+AlgebraOfGraphics = "~0.5.2"
 CSV = "~0.8.5"
 DataFrames = "~1.2.2"
-GLMakie = "~0.4.4"
+GLMakie = "~0.4.5"
+HTTP = "~0.9.13"
 PlutoUI = "~0.7.9"
 """
 
@@ -389,10 +106,10 @@ uuid = "79e6a3ab-5dfb-504d-930d-738a2a938a0e"
 version = "3.3.1"
 
 [[AlgebraOfGraphics]]
-deps = ["Colors", "DataAPI", "Dates", "FileIO", "GLM", "GeoInterface", "GeometryBasics", "GridLayoutBase", "KernelDensity", "Loess", "Makie", "PlotUtils", "PooledArrays", "RelocatableFolders", "StatsBase", "StructArrays", "Tables"]
-git-tree-sha1 = "30339bb427d85fc432e7a889599ceff4e22522fb"
+deps = ["Colors", "Dates", "FileIO", "GLM", "GeoInterface", "GeometryBasics", "GridLayoutBase", "KernelDensity", "Loess", "Makie", "PlotUtils", "PooledArrays", "RelocatableFolders", "StatsBase", "StructArrays", "Tables"]
+git-tree-sha1 = "8e4d8d012a5fb4f12cf60ae8658afa3aeffe5873"
 uuid = "cbdf2221-f076-402e-a563-3d30da359d67"
-version = "0.5.0"
+version = "0.5.2"
 
 [[Animations]]
 deps = ["Colors"]
@@ -405,9 +122,9 @@ uuid = "0dad84c5-d112-42e6-8d28-ef12dabb789f"
 
 [[ArrayInterface]]
 deps = ["IfElse", "LinearAlgebra", "Requires", "SparseArrays", "Static"]
-git-tree-sha1 = "2e004e61f76874d153979effc832ae53b56c20ee"
+git-tree-sha1 = "cdb00a6fb50762255021e5571cf95df3e1797a51"
 uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "3.1.22"
+version = "3.1.23"
 
 [[Artifacts]]
 uuid = "56f22d72-fd6d-98f1-02f0-08ddc0907c33"
@@ -452,9 +169,9 @@ version = "1.16.1+0"
 
 [[ChainRulesCore]]
 deps = ["Compat", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "f53ca8d41e4753c41cdafa6ec5f7ce914b34be54"
+git-tree-sha1 = "bdc0937269321858ab2a4f288486cb258b9a0af7"
 uuid = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
-version = "0.10.13"
+version = "1.3.0"
 
 [[ColorBrewer]]
 deps = ["Colors", "JSON", "Test"]
@@ -463,10 +180,10 @@ uuid = "a2cac450-b92f-5266-8821-25eda20663c8"
 version = "0.4.0"
 
 [[ColorSchemes]]
-deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Random", "StaticArrays"]
-git-tree-sha1 = "ed268efe58512df8c7e224d2e170afd76dd6a417"
+deps = ["ColorTypes", "Colors", "FixedPointNumbers", "Random"]
+git-tree-sha1 = "9995eb3977fbf67b86d0a0a0508e83017ded03f2"
 uuid = "35d6a980-a343-548e-a6ea-1d62b119f2f4"
-version = "3.13.0"
+version = "3.14.0"
 
 [[ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
@@ -488,9 +205,9 @@ version = "0.12.8"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "SHA", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "344f143fa0ec67e47917848795ab19c6a455f32c"
+git-tree-sha1 = "727e463cfebd0c7b999bbf3e9e7e16f254b94193"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "3.32.0"
+version = "3.34.0"
 
 [[CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
@@ -520,9 +237,9 @@ version = "1.2.2"
 
 [[DataStructures]]
 deps = ["Compat", "InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "4437b64df1e0adccc3e5d1adbc3ac741095e4677"
+git-tree-sha1 = "7d9d316f04214f7efdbb6398d545446e246eff02"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.18.9"
+version = "0.18.10"
 
 [[DataValueInterfaces]]
 git-tree-sha1 = "bfc1187b79289637fa0ef6d4436ebdfe6905cbd6"
@@ -607,15 +324,15 @@ version = "3.3.9+8"
 
 [[FileIO]]
 deps = ["Pkg", "Requires", "UUIDs"]
-git-tree-sha1 = "256d8e6188f3f1ebfa1a5d17e072a0efafa8c5bf"
+git-tree-sha1 = "937c29268e405b6808d958a9ac41bfe1a31b08e7"
 uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
-version = "1.10.1"
+version = "1.11.0"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Statistics"]
-git-tree-sha1 = "8c8eac2af06ce35973c3eadb4ab3243076a408e7"
+git-tree-sha1 = "7c365bdef6380b29cfc5caaf99688cd7489f9b87"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.12.1"
+version = "0.12.2"
 
 [[FixedPointNumbers]]
 deps = ["Statistics"]
@@ -683,9 +400,9 @@ version = "1.5.1"
 
 [[GLMakie]]
 deps = ["ColorTypes", "Colors", "FileIO", "FixedPointNumbers", "FreeTypeAbstraction", "GLFW", "GeometryBasics", "LinearAlgebra", "Makie", "Markdown", "MeshIO", "ModernGL", "Observables", "Printf", "Serialization", "ShaderAbstractions", "StaticArrays"]
-git-tree-sha1 = "ef6b2599a755101af901bc9e5e2c535e9e2a0543"
+git-tree-sha1 = "5a1cb5efff725ebb6b9040eacd24044784459380"
 uuid = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
-version = "0.4.4"
+version = "0.4.5"
 
 [[GeoInterface]]
 deps = ["RecipesBase"]
@@ -734,6 +451,12 @@ git-tree-sha1 = "53bb909d1151e57e2484c3d1b53e19552b887fb2"
 uuid = "42e2da0e-8278-4e71-bc24-59509adca0fe"
 version = "1.0.2"
 
+[[HTTP]]
+deps = ["Base64", "Dates", "IniFile", "Logging", "MbedTLS", "NetworkOptions", "Sockets", "URIs"]
+git-tree-sha1 = "44e3b40da000eab4ccb1aecdc4801c040026aeb5"
+uuid = "cd3eb016-35fb-5094-929b-558a96fad6f3"
+version = "0.9.13"
+
 [[HarfBuzz_jll]]
 deps = ["Artifacts", "Cairo_jll", "Fontconfig_jll", "FreeType2_jll", "Glib_jll", "Graphite2_jll", "JLLWrappers", "Libdl", "Libffi_jll", "Pkg"]
 git-tree-sha1 = "8a954fed8ac097d5be04921d595f741115c1b2ad"
@@ -752,10 +475,16 @@ uuid = "a09fc81d-aa75-5fe9-8630-4744c3626534"
 version = "0.9.1"
 
 [[ImageIO]]
-deps = ["FileIO", "Netpbm", "PNGFiles", "TiffImages", "UUIDs"]
-git-tree-sha1 = "d067570b4d4870a942b19d9ceacaea4fb39b69a1"
+deps = ["FileIO", "Netpbm", "OpenEXR", "PNGFiles", "TiffImages", "UUIDs"]
+git-tree-sha1 = "ba5334adebad6bcf43f2586e7151d2c83f09f9b6"
 uuid = "82e4d734-157c-48bb-816b-45c225c6df19"
-version = "0.5.6"
+version = "0.5.7"
+
+[[Imath_jll]]
+deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
+git-tree-sha1 = "87f7662e03a649cffa2e05bf19c303e168732d3e"
+uuid = "905a6f67-0a94-5f89-b386-d35d92009cd1"
+version = "3.1.2+0"
 
 [[IndirectArrays]]
 git-tree-sha1 = "c2a145a145dc03a7620af1444e0264ef907bd44f"
@@ -766,6 +495,12 @@ version = "0.5.1"
 git-tree-sha1 = "f5fc07d4e706b84f72d54eedcc1c13d92fb0871c"
 uuid = "d25df0c9-e2be-5dd7-82c8-3ad0b3e990b9"
 version = "0.1.2"
+
+[[IniFile]]
+deps = ["Test"]
+git-tree-sha1 = "098e4d2c533924c921f9f9847274f2ad89e018b8"
+uuid = "83e8ac13-25f8-5344-8a64-a9f2b223428f"
+version = "0.5.0"
 
 [[IntelOpenMP_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -779,9 +514,9 @@ uuid = "b77e0a4c-d291-57a0-90e8-8db25a27a240"
 
 [[Interpolations]]
 deps = ["AxisAlgorithms", "ChainRulesCore", "LinearAlgebra", "OffsetArrays", "Random", "Ratios", "Requires", "SharedArrays", "SparseArrays", "StaticArrays", "WoodburyMatrices"]
-git-tree-sha1 = "1470c80592cf1f0a35566ee5e93c5f8221ebc33a"
+git-tree-sha1 = "61aa005707ea2cebf47c8d780da8dc9bc4e0c512"
 uuid = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
-version = "0.13.3"
+version = "0.13.4"
 
 [[IntervalSets]]
 deps = ["Dates", "EllipsisNotation", "Statistics"]
@@ -794,6 +529,11 @@ deps = ["Test"]
 git-tree-sha1 = "15732c475062348b0165684ffe28e85ea8396afc"
 uuid = "41ab1584-1d38-5bbf-9106-f11c6c58b48f"
 version = "1.0.0"
+
+[[IrrationalConstants]]
+git-tree-sha1 = "f76424439413893a832026ca355fe273e93bce94"
+uuid = "92d709cd-6900-40b7-9082-c6be49f344b6"
+version = "0.1.0"
 
 [[Isoband]]
 deps = ["isoband_jll"]
@@ -922,10 +662,10 @@ uuid = "4345ca2d-374a-55d4-8d30-97f9976e7612"
 version = "0.5.3"
 
 [[LogExpFunctions]]
-deps = ["DocStringExtensions", "LinearAlgebra"]
-git-tree-sha1 = "7bd5f6565d80b6bf753738d2bc40a5dfea072070"
+deps = ["DocStringExtensions", "IrrationalConstants", "LinearAlgebra"]
+git-tree-sha1 = "3d682c07e6dd250ed082f883dc88aee7996bf2cc"
 uuid = "2ab3a3ac-af41-5b50-aa03-7779005ae688"
-version = "0.2.5"
+version = "0.3.0"
 
 [[Logging]]
 uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
@@ -937,10 +677,10 @@ uuid = "856f044c-d86e-5d09-b602-aeab76dc8ba7"
 version = "2021.1.1+1"
 
 [[Makie]]
-deps = ["Animations", "Artifacts", "Base64", "ColorBrewer", "ColorSchemes", "ColorTypes", "Colors", "Contour", "Distributions", "DocStringExtensions", "FFMPEG", "FileIO", "FixedPointNumbers", "Formatting", "FreeType", "FreeTypeAbstraction", "GeometryBasics", "GridLayoutBase", "ImageIO", "IntervalSets", "Isoband", "KernelDensity", "LaTeXStrings", "LinearAlgebra", "MakieCore", "Markdown", "Match", "MathTeXEngine", "Observables", "Packing", "PlotUtils", "PolygonOps", "Printf", "Random", "Serialization", "Showoff", "SignedDistanceFields", "SparseArrays", "StaticArrays", "Statistics", "StatsBase", "StatsFuns", "StructArrays", "UnicodeFun"]
-git-tree-sha1 = "5761bfd21ad271efd7e134879e39a2289a032fc8"
+deps = ["Animations", "Base64", "ColorBrewer", "ColorSchemes", "ColorTypes", "Colors", "Contour", "Distributions", "DocStringExtensions", "FFMPEG", "FileIO", "FixedPointNumbers", "Formatting", "FreeType", "FreeTypeAbstraction", "GeometryBasics", "GridLayoutBase", "ImageIO", "IntervalSets", "Isoband", "KernelDensity", "LaTeXStrings", "LinearAlgebra", "MakieCore", "Markdown", "Match", "MathTeXEngine", "Observables", "Packing", "PlotUtils", "PolygonOps", "Printf", "Random", "RelocatableFolders", "Serialization", "Showoff", "SignedDistanceFields", "SparseArrays", "StaticArrays", "Statistics", "StatsBase", "StatsFuns", "StructArrays", "UnicodeFun"]
+git-tree-sha1 = "d03c5a4056707bb8d43e349bc2cb49fc1cfa8b9f"
 uuid = "ee78f7c6-11fb-53f2-987a-cfe4a2b5a57a"
-version = "0.15.0"
+version = "0.15.1"
 
 [[MakieCore]]
 deps = ["Observables"]
@@ -949,9 +689,9 @@ uuid = "20f20a25-4f0e-4fdf-b5d1-57303727442b"
 version = "0.1.3"
 
 [[MappedArrays]]
-git-tree-sha1 = "18d3584eebc861e311a552cbb67723af8edff5de"
+git-tree-sha1 = "e8b359ef06ec72e8c030463fe02efe5527ee5142"
 uuid = "dbb5928d-eab1-5f90-85c2-b9b0edb7c900"
-version = "0.4.0"
+version = "0.4.1"
 
 [[Markdown]]
 deps = ["Base64"]
@@ -968,6 +708,12 @@ git-tree-sha1 = "69b565c0ca7bf9dae18498b52431f854147ecbf3"
 uuid = "0a4f8689-d25c-4efe-a92b-7142dfc1aa53"
 version = "0.1.2"
 
+[[MbedTLS]]
+deps = ["Dates", "MbedTLS_jll", "Random", "Sockets"]
+git-tree-sha1 = "1c38e51c3d08ef2278062ebceade0e46cefc96fe"
+uuid = "739be429-bea8-5141-9913-cc70e7f3736d"
+version = "1.0.3"
+
 [[MbedTLS_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "c8ffd9c3-330d-5841-b78e-0817d7145fa1"
@@ -980,9 +726,9 @@ version = "0.4.7"
 
 [[Missings]]
 deps = ["DataAPI"]
-git-tree-sha1 = "4ea90bd5d3985ae1f9a908bd4500ae88921c5ce7"
+git-tree-sha1 = "2ca267b08821e86c5ef4376cffed98a46c2cb205"
 uuid = "e1d29d7a-bbdc-5cf2-9ac0-f12de2c33e28"
-version = "1.0.0"
+version = "1.0.1"
 
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
@@ -1023,15 +769,27 @@ version = "0.4.0"
 
 [[OffsetArrays]]
 deps = ["Adapt"]
-git-tree-sha1 = "5cc97a6f806ba1b36bac7078b866d4297ae8c463"
+git-tree-sha1 = "c0f4a4836e5f3e0763243b8324200af6d0e0f90c"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
-version = "1.10.4"
+version = "1.10.5"
 
 [[Ogg_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
 git-tree-sha1 = "7937eda4681660b4d6aeeecc2f7e1c81c8ee4e2f"
 uuid = "e7412a2a-1a6e-54c0-be00-318e2571c051"
 version = "1.3.5+0"
+
+[[OpenEXR]]
+deps = ["Colors", "FileIO", "OpenEXR_jll"]
+git-tree-sha1 = "327f53360fdb54df7ecd01e96ef1983536d1e633"
+uuid = "52e1d378-f018-4a11-a4be-720524705ac7"
+version = "0.3.2"
+
+[[OpenEXR_jll]]
+deps = ["Artifacts", "Imath_jll", "JLLWrappers", "Libdl", "Pkg", "Zlib_jll"]
+git-tree-sha1 = "923319661e9a22712f24596ce81c54fc0366f304"
+uuid = "18a262bb-aa17-5467-a713-aee519bc75cb"
+version = "3.1.1+0"
 
 [[OpenSSL_jll]]
 deps = ["Artifacts", "JLLWrappers", "Libdl", "Pkg"]
@@ -1082,9 +840,9 @@ version = "0.4.1"
 
 [[PaddedViews]]
 deps = ["OffsetArrays"]
-git-tree-sha1 = "59925f4ae6861cddc2313a47514b93b6740f9b6f"
+git-tree-sha1 = "646eed6f6a5d8df6708f15ea7e02a7a2c4fe4800"
 uuid = "5432bcbf-9aad-5242-b902-cca2824c8663"
-version = "0.5.9"
+version = "0.5.10"
 
 [[Parsers]]
 deps = ["Dates"]
@@ -1168,19 +926,20 @@ deps = ["Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[Ratios]]
-git-tree-sha1 = "37d210f612d70f3f7d57d488cb3b6eff56ad4e41"
+deps = ["Requires"]
+git-tree-sha1 = "7dff99fbc740e2f8228c6878e2aad6d7c2678098"
 uuid = "c84ed2f1-dad5-54f0-aa8e-dbefe2724439"
-version = "0.4.0"
+version = "0.4.1"
 
 [[RecipesBase]]
-git-tree-sha1 = "b3fb709f3c97bfc6e948be68beeecb55a0b340ae"
+git-tree-sha1 = "44a75aa7a527910ee3d1751d1f0e4148698add9e"
 uuid = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
-version = "1.1.1"
+version = "1.1.2"
 
 [[Reexport]]
-git-tree-sha1 = "5f6c21241f0f655da3952fd60aa18477cf96c220"
+git-tree-sha1 = "adcd36e8ba9665c88eb0bd156d4e2a19f9b0d889"
 uuid = "189a3867-3050-52da-a836-e630ba90ab69"
-version = "1.1.0"
+version = "1.2.0"
 
 [[RelocatableFolders]]
 deps = ["SHA", "Scratch"]
@@ -1228,9 +987,9 @@ version = "1.1.0"
 
 [[SentinelArrays]]
 deps = ["Dates", "Random"]
-git-tree-sha1 = "a3a337914a035b2d59c9cbe7f1a38aaba1265b02"
+git-tree-sha1 = "54f37736d8934a12a200edea2f9206b03bdf3159"
 uuid = "91c51154-3ec4-41a3-a24f-3f23e20d615c"
-version = "1.3.6"
+version = "1.3.7"
 
 [[Serialization]]
 uuid = "9e88b42a-f829-5b0c-bbe9-9e923198166b"
@@ -1277,9 +1036,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SpecialFunctions]]
 deps = ["ChainRulesCore", "LogExpFunctions", "OpenSpecFun_jll"]
-git-tree-sha1 = "508822dca004bf62e210609148511ad03ce8f1d8"
+git-tree-sha1 = "a322a9493e49c5f3a10b50df3aedaf1cdb3244b7"
 uuid = "276daf66-3868-5448-9aa4-cd146d93841b"
-version = "1.6.0"
+version = "1.6.1"
 
 [[StackViews]]
 deps = ["OffsetArrays"]
@@ -1295,9 +1054,9 @@ version = "0.3.0"
 
 [[StaticArrays]]
 deps = ["LinearAlgebra", "Random", "Statistics"]
-git-tree-sha1 = "3fedeffc02e47d6e3eb479150c8e5cd8f15a77a0"
+git-tree-sha1 = "3240808c6d463ac46f1c1cd7638375cd22abbccb"
 uuid = "90137ffa-7385-5640-81b9-e52037218182"
-version = "1.2.10"
+version = "1.2.12"
 
 [[Statistics]]
 deps = ["LinearAlgebra", "SparseArrays"]
@@ -1315,10 +1074,10 @@ uuid = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
 version = "0.33.9"
 
 [[StatsFuns]]
-deps = ["LogExpFunctions", "Rmath", "SpecialFunctions"]
-git-tree-sha1 = "30cd8c360c54081f806b1ee14d2eecbef3c04c49"
+deps = ["IrrationalConstants", "LogExpFunctions", "Reexport", "Rmath", "SpecialFunctions"]
+git-tree-sha1 = "20d1bb720b9b27636280f751746ba4abb465f19d"
 uuid = "4c63d2b9-4356-54db-8cca-17b64c39e42c"
-version = "0.9.8"
+version = "0.9.9"
 
 [[StatsModels]]
 deps = ["DataAPI", "DataStructures", "LinearAlgebra", "Printf", "ShiftedArrays", "SparseArrays", "StatsBase", "StatsFuns", "Tables"]
@@ -1379,9 +1138,14 @@ version = "0.4.1"
 
 [[TranscodingStreams]]
 deps = ["Random", "Test"]
-git-tree-sha1 = "7c53c35547de1c5b9d46a4797cf6d8253807108c"
+git-tree-sha1 = "216b95ea110b5972db65aa90f88d8d89dcb8851c"
 uuid = "3bb67fe8-82b1-5028-8e26-92a6c54297fa"
-version = "0.9.5"
+version = "0.9.6"
+
+[[URIs]]
+git-tree-sha1 = "97bbe755a53fe859669cd907f2d96aee8d2c1355"
+uuid = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
+version = "1.3.0"
 
 [[UUIDs]]
 deps = ["Random", "SHA"]
@@ -1548,41 +1312,14 @@ version = "3.5.0+0"
 """
 
 # ╔═╡ Cell order:
-# ╟─8ad6d918-3e2a-4af9-9852-bf0ad02dc196
-# ╟─74dabd2f-bc78-4b32-a385-4e680b90afc9
-# ╟─dc723b50-90bb-11eb-17ca-a33654b9cbdb
-# ╟─0c7f8ff0-90bc-11eb-12ce-37d5a61236d5
-# ╠═439fce50-90bc-11eb-022f-61ca67b132b4
-# ╠═937c7751-6b96-494c-bfb7-9997ea080377
-# ╠═2c02dac0-4a24-4cee-9f82-ed63f3884145
-# ╟─7bf9ec40-90bc-11eb-2783-a763cf94a06a
-# ╟─82425a12-90bc-11eb-0a88-d7ecf6e05084
-# ╟─9b75284e-90bc-11eb-35e7-5fb28d100b7a
-# ╠═e1fe6450-9187-11eb-0c24-11dfb2161da8
-# ╠═08ef4390-9188-11eb-0a61-71641713eaf4
-# ╠═2647035e-9188-11eb-31b5-cfd3716ff2bd
-# ╠═30f42ae0-9188-11eb-1ec4-2ff32ea30765
-# ╠═6806b1aa-6ee1-4514-b85f-c04da98afafe
-# ╠═491d23d0-e80e-492c-94bc-1739a5175d09
-# ╟─f632aff4-5892-41b9-a30b-e66a68718be7
-# ╠═d386a3ff-64d6-495c-a951-94644b45ad60
-# ╠═03adbd74-d40e-4dc3-bbf4-9d573ec92a88
-# ╟─cf1cc295-d734-42ce-bbb4-777885eae247
-# ╟─d84ac500-cdbc-4b69-b7b5-7f08451b68d3
-# ╟─eecf3ccb-db0a-4a84-b268-d777d938d618
-# ╠═4570b49f-9877-4a5c-98a2-f84d186e450f
-# ╟─9923c808-abc6-4ace-a99e-05c64df6c314
-# ╠═aacb6f55-3fa2-4085-853e-43694fcc763d
-# ╟─a10aeb9c-d109-408b-8193-1e39c25e8292
-# ╠═c1a64b79-6677-458c-a4d0-28a2319668b9
-# ╠═115e19ca-04d7-4ae8-902f-69b7a272c321
-# ╟─7dcff6f4-d1e1-4ead-8c18-6a943a2516a6
-# ╟─45ea1037-a5f8-4fac-acab-316c5c798df0
-# ╟─9a7f4887-3c11-4180-9a2c-a79e3b06d610
-# ╟─979035af-cacf-4278-b3c1-19468f6368b0
-# ╠═601bf140-8156-456a-b4cb-95fc6c9524d4
-# ╟─82563106-5371-4612-88f1-ed2bf290a58e
-# ╠═d4960255-962b-47cb-bcba-84d88a450277
-# ╟─ce2efff8-6a62-4678-9e3c-68e678f2bb5b
+# ╟─eee3e23c-9895-4004-99b0-daefc19d4e4f
+# ╠═45984b50-034f-11ec-19bf-77e944c04bf8
+# ╟─8afc9a0d-eb9a-487b-9907-08ebe3e5f422
+# ╠═a6fae924-d77d-47c7-9578-aae2edbdab5f
+# ╟─c58d4252-c49c-4e59-a0cd-669e7ac43f12
+# ╠═e8d24f81-61cf-47aa-b13a-4adcc9d04ee3
+# ╟─dee5e031-2ca2-4f24-b0a4-0fa7e95d13e9
+# ╠═0d1598bd-9e3a-4726-af28-84b300b2480b
+# ╟─0319281a-7f3a-484e-89ae-0a1e082fdfca
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
