@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.15.1
+# v0.18.4
 
 using Markdown
 using InteractiveUtils
@@ -116,14 +116,12 @@ First, a simple version using default values for several aspects of the diagram.
 """
 
 # ╔═╡ 17ea91b1-db35-43b1-8cf0-f91f070b3049
-let
 regions_cum |>
 	@vlplot(
 		width = 600, height = 300,
 		:bar,
 		x = :Region, y = :Pop2019, color = :Region
 	)
-end
 
 # ╔═╡ 17ebb9cc-1080-41f6-a914-f73afbb8e957
 md"""
@@ -131,7 +129,6 @@ The second version uses serveral formatting options. It has different labels (x-
 """
 
 # ╔═╡ afe3969f-6ff9-4c12-88ce-62dc2c3b2b3e
-let
 regions_cum |>
 	@vlplot(
 		width = 600, height = 300,
@@ -142,7 +139,6 @@ regions_cum |>
 		color = :Region,
 		config = {background = "ghostwhite"}
 	)
-end
 
 # ╔═╡ 9f9924c4-a937-4dea-b045-ba8101c2971b
 md"""
@@ -155,14 +151,12 @@ Next we have a look at the population of the subregions.
 """
 
 # ╔═╡ 55b9aa0b-da52-4a8c-a7b8-4bf25da2ca2f
-let
 subregions_cum |>
 	@vlplot(
 		width = 600, height = 300,
 		:bar,
 		x = :Subregion,	y = :Pop2019, color = :Region
 	)
-end
 
 # ╔═╡ ea4f0f45-7fb3-4faa-bdb9-5b4a1df04280
 md"""
@@ -170,7 +164,6 @@ As there are quite a few subregions, a horizontal bar diagram might be more read
 """
 
 # ╔═╡ 94bfd9c5-2877-417e-a18c-4983f243fc85
-let
 subregions_cum |>
 	@vlplot(
 		title = "Population by Subregion, 2019",
@@ -181,7 +174,6 @@ subregions_cum |>
 		color = :Region,
 		config = {background = "ghostwhite"}
 	)
-end
 
 # ╔═╡ 0d84e074-af24-4823-a355-57a3485edc36
 md"""
@@ -189,7 +181,6 @@ It get's even more readable, if we sort the subregions by population size before
 """
 
 # ╔═╡ 9f72a8e5-8777-40c0-a6af-75b1a2aa7115
-let
 subregions_cum |>
 	@vlplot(
 		title = "Population by Subregion, 2019",
@@ -200,7 +191,6 @@ subregions_cum |>
 		color = :Region,
 		config = {background = "ghostwhite"}
 	)
-end
 
 # ╔═╡ 371dad4d-963c-42c9-a785-c477e124bcb4
 md"""
@@ -218,14 +208,12 @@ In the next step we have a look at the population at country level in relation t
 """
 
 # ╔═╡ b38a4a8a-b655-4756-b396-bd6b2f97579c
-let
-	countries |>
-		@vlplot(
-			width = 600, height = 300,
-			:point,
-			x = :Pop2019, y = :PopChangePct, color = :Region
-		)
-end
+countries |>
+	@vlplot(
+		width = 600, height = 300,
+		:point,
+		x = :Pop2019, y = :PopChangePct, color = :Region
+	)
 
 # ╔═╡ e0b07b43-4446-43f5-814a-0642ece326e7
 md"""
@@ -233,19 +221,17 @@ The distribution of the data is quite skewed. So a logarithmic scale on the x-ax
 """
 
 # ╔═╡ 1dc24d9c-8d8d-479c-b9e1-79792ee2ab0c
-let
-	countries |>
-		@vlplot(
-			title = "Population vs. Growth Rate, 2019",
-			width = 600, height = 300,
-			:point,
-			x = {:Pop2019, title = "Population [millions]", 
-				scale = {type = :log, base = 10}}, 
-			y = {:PopChangePct, title = "Growth Rate [%]"}, 
-			color = :Region,
-			config = {background = "ghostwhite"}
-		)
-end
+countries |>
+	@vlplot(
+		title = "Population vs. Growth Rate, 2019",
+		width = 600, height = 300,
+		:point,
+		x = {:Pop2019, title = "Population [millions]", 
+			scale = {type = :log, base = 10}}, 
+		y = {:PopChangePct, title = "Growth Rate [%]"}, 
+		color = :Region,
+		config = {background = "ghostwhite"}
+	)
 
 # ╔═╡ ec791080-6c52-4c80-b7ca-43b604d4ede1
 md"""
@@ -258,14 +244,12 @@ md"""
 """
 
 # ╔═╡ f2753a4d-7bcd-4866-b59c-5568385e88c3
-let
-	countries |>
-		@vlplot(
-			width = 600, height = 300,
-			:bar,
-			x = {:GDPperCapita, bin = true}, y = "count()"
-		)
-end
+countries |>
+	@vlplot(
+		width = 600, height = 300,
+		:bar,
+		x = {:GDPperCapita, bin = true}, y = "count()"
+	)
 
 # ╔═╡ 5782433d-5ab6-4a9c-a6fd-04610edb1dd8
 md"""
@@ -278,18 +262,16 @@ And again with labels (and the same number of bins as in the Gadfly example).
 """
 
 # ╔═╡ 56892be5-2c1c-40a8-b0cd-d958d71a8845
-let
-	countries |>
-		@vlplot(
-			title = "Distribution of GDP per Capita, 2019",
-			width = 600, height = 300,
-			:bar,
-			x = {:GDPperCapita, bin = {maxbins = 20}, 
-				title = "GDP per Capita [USD]"}, 
-			y = {"count()", title = "Number of countries"},
-			config = {background = "ghostwhite"}
-		)
-end
+countries |>
+	@vlplot(
+		title = "Distribution of GDP per Capita, 2019",
+		width = 600, height = 300,
+		:bar,
+		x = {:GDPperCapita, bin = {maxbins = 20}, 
+			title = "GDP per Capita [USD]"}, 
+		y = {"count()", title = "Number of countries"},
+		config = {background = "ghostwhite"}
+	)
 
 # ╔═╡ a6ce4860-949b-4e84-b884-6090b40c3b96
 md"""
@@ -307,19 +289,17 @@ md"""
 """
 
 # ╔═╡ 8580f7b7-564d-4469-a022-4bdd3a1b4453
-let
-	countries |>
-		@vlplot(
-			title = "GDP per Capita by Region, 2019",
-			width = 600, height = 300,
-			:boxplot,
-			transform = [{filter = "datum.GDPperCapita <= 100000"}],
-			x = {:Region, title = "Region", axis = {labelAngle = 0}}, 
-			y = {:GDPperCapita, title = "GDP per Capita [USD]"}, 
-			color = :Region,
-			config = {background = "ghostwhite"}
-		)
-end
+countries |>
+	@vlplot(
+		title = "GDP per Capita by Region, 2019",
+		width = 600, height = 300,
+		:boxplot,
+		transform = [{filter = "datum.GDPperCapita <= 100000"}],
+		x = {:Region, title = "Region", axis = {labelAngle = 0}}, 
+		y = {:GDPperCapita, title = "GDP per Capita [USD]"}, 
+		color = :Region,
+		config = {background = "ghostwhite"}
+	)
 
 # ╔═╡ f1777ba0-7414-4963-803e-d7335fecc3a9
 md"""
@@ -335,30 +315,28 @@ md"""
 """
 
 # ╔═╡ da36a333-1639-4a4a-a05b-75e0d04784cc
-let
-	countries |>
-		@vlplot(
-			title = "GDP per Capita by Region, 2019",
-			height = 300,
-			mark = {:area, orient = "horizontal"},
+countries |>
+	@vlplot(
+		title = "GDP per Capita by Region, 2019",
+		height = 400,
+		mark = {:area, orient = "horizontal"},
 		
-			transform = [
-				{filter = "datum.GDPperCapita <= 100000"},
-				{density = "GDPperCapita", groupby = ["Region"]}
-			],
+		transform = [
+			{filter = "datum.GDPperCapita <= 100000"},
+			{density = "GDPperCapita", groupby = ["Region"]}
+		],
 		
-			x = {"density:q", stack = "center", impute = nothing, title = nothing,
-				axis = {labels = false}}, 
-			y = {"value:q", title = "GDP per Capita [USD]", axis = {labelAngle = 0}}, 
-		
-			column = {"Region", 
-				header = {titleOrient = "bottom", labelOrient = "bottom"}},
-			color = :Region,
-		
-			config = {background = "ghostwhite"},
-			width = 120, spacing = 0
-		)
-end
+		x = {"density:q", stack = "center", impute = nothing, title = nothing,
+			axis = {labels = false}}, 
+		y = {"value:q", title = "GDP per Capita [USD]", axis = {labelAngle = 0}}, 
+	
+		column = {"Region", 
+			header = {titleOrient = "bottom", labelOrient = "bottom"}},
+		color = :Region,
+	
+		config = {background = "ghostwhite"},
+		width = 120, spacing = 0
+	)
 
 # ╔═╡ 72b9a687-30ef-47ea-81d7-ba563eaeb714
 md"""
@@ -410,6 +388,10 @@ deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", 
 git-tree-sha1 = "344f143fa0ec67e47917848795ab19c6a455f32c"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
 version = "3.32.0"
+
+[[CompilerSupportLibraries_jll]]
+deps = ["Artifacts", "Libdl"]
+uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
 
 [[ConstructionBase]]
 deps = ["LinearAlgebra"]
@@ -553,7 +535,7 @@ uuid = "29816b5a-b9ab-546f-933c-edad1886dfa8"
 uuid = "8f399da3-3557-5675-b5ff-fb832c97cbdb"
 
 [[LinearAlgebra]]
-deps = ["Libdl"]
+deps = ["Libdl", "libblastrampoline_jll"]
 uuid = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 
 [[Logging]]
@@ -600,6 +582,10 @@ git-tree-sha1 = "905224bbdd4b555c69bb964514cfa387616f0d3a"
 uuid = "2bd173c7-0d6d-553b-b6af-13a54713934c"
 version = "1.3.0"
 
+[[OpenBLAS_jll]]
+deps = ["Artifacts", "CompilerSupportLibraries_jll", "Libdl"]
+uuid = "4536629a-c528-5b80-bd46-f80d51c5b363"
+
 [[OrderedCollections]]
 git-tree-sha1 = "85f8e6578bf1f9ee0d11e7bb1b1456435479d47c"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
@@ -642,7 +628,7 @@ deps = ["InteractiveUtils", "Markdown", "Sockets", "Unicode"]
 uuid = "3fa0cd96-eef1-5676-8a61-b3b8758bbffb"
 
 [[Random]]
-deps = ["Serialization"]
+deps = ["SHA", "Serialization"]
 uuid = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 
 [[Reexport]]
@@ -764,6 +750,10 @@ version = "0.9.3"
 [[Zlib_jll]]
 deps = ["Libdl"]
 uuid = "83775a58-1f1d-513f-b197-d71354ab007a"
+
+[[libblastrampoline_jll]]
+deps = ["Artifacts", "Libdl", "OpenBLAS_jll"]
+uuid = "8e850b90-86db-534c-a0d3-1478176c7d93"
 
 [[nghttp2_jll]]
 deps = ["Artifacts", "Libdl"]
