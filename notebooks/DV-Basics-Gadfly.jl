@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.11
+# v0.19.22
 
 using Markdown
 using InteractiveUtils
@@ -99,7 +99,7 @@ md"""
 """
 
 # ╔═╡ f5edb740-8e8a-11eb-3ccb-cfffc7f946be
-regions = groupby(select(select(countries, Not(:Country)), Not(:Subregion)), :Region)
+regions = groupby(select(countries, Not([:Country, :Subregion])), :Region)
 
 # ╔═╡ 23bfd700-8e8d-11eb-2526-39f52a86908c
 regions_cum = combine(regions, :Pop2018 => sum, :Pop2019 => sum, :PopChangeAbs => sum, :GDP => sum, renamecols = false)
@@ -107,7 +107,7 @@ regions_cum = combine(regions, :Pop2018 => sum, :Pop2019 => sum, :PopChangeAbs =
 # ╔═╡ 9e6a3986-889c-4947-ba96-84bd46f55982
 begin
 	round2 = x -> round(x; digits = 2) 
-	transform(regions_cum, 
+	transform!(regions_cum, 
 		:Pop2018 => ByRow(round2) => :Pop2018,
 		:Pop2019 => ByRow(round2) => :Pop2019,
 		:PopChangeAbs => ByRow(round2) => :PopChangeAbs)
@@ -193,8 +193,8 @@ barplot4 = plot(subregions_cum,
 	Guide.ylabel("Subregion"),
 	Guide.xlabel("Population [millions]"),
 	Scale.x_continuous(format = :plain),
-	Theme(background_color = "ghostwhite", bar_spacing = 1mm)	
-)ﬁ
+	Theme(background_color = "ghostwhite", bar_spacing = 1mm)
+)
 
 # ╔═╡ 9b53cff0-8e93-11eb-197d-7fcdf985adf7
 md"""
@@ -357,9 +357,9 @@ PlutoUI = "~0.7.37"
 PLUTO_MANIFEST_TOML_CONTENTS = """
 # This file is machine-generated - editing it directly is not advised
 
-julia_version = "1.8.0"
+julia_version = "1.8.5"
 manifest_format = "2.0"
-project_hash = "ad5e48aa4a14c101b53502b1ea8af45c7bb645b1"
+project_hash = "f89c32a129bef56529e2358f30a36f348ee15098"
 
 [[deps.AbstractFFTs]]
 deps = ["ChainRulesCore", "LinearAlgebra"]
@@ -452,7 +452,7 @@ version = "3.46.0"
 [[deps.CompilerSupportLibraries_jll]]
 deps = ["Artifacts", "Libdl"]
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "0.5.2+0"
+version = "1.0.1+0"
 
 [[deps.Compose]]
 deps = ["Base64", "Colors", "DataStructures", "Dates", "IterTools", "JSON", "LinearAlgebra", "Measures", "Printf", "Random", "Requires", "Statistics", "UUIDs"]
@@ -1025,7 +1025,7 @@ version = "1.7.0"
 [[deps.Tar]]
 deps = ["ArgTools", "SHA"]
 uuid = "a4e569a6-e804-4fa4-b0f3-eef7a1d5b13e"
-version = "1.10.0"
+version = "1.10.1"
 
 [[deps.Test]]
 deps = ["InteractiveUtils", "Logging", "Random", "Serialization"]
